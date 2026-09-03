@@ -10,6 +10,7 @@ export default defineConfig({
 			title: 'QA Knowledge Base',
 			description:
 				'QA knowledge base for NCI data-commons projects. MDB/STS is filled first; other projects are stubs.',
+			customCss: ['./src/styles/custom.css'],
 			social: [
 				{
 					icon: 'github',

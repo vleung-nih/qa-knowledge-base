@@ -1,0 +1,56 @@
+/* Shrink type in the article pane only. Sidebar, header, and search stay at Starlight defaults. */
+main .content-panel {
+	--sl-text-h1: var(--sl-text-3xl);
+	--sl-text-h2: var(--sl-text-2xl);
+	--sl-text-h3: var(--sl-text-xl);
+	--sl-text-h4: var(--sl-text-lg);
+	--sl-text-h5: var(--sl-text-base);
+	font-size: var(--sl-text-sm);
+}
+
+/* Wider article, narrower "On this page" column (defaults: 45rem content, TOC as wide as the left nav). */
+:root {
+	--sl-content-width: 80rem;
+	--sl-toc-width: 14rem;
+}
+
+@media (min-width: 50em) {
+	main .content-panel {
+		--sl-text-h1: var(--sl-text-4xl);
+		--sl-text-h2: var(--sl-text-3xl);
+		--sl-text-h3: var(--sl-text-2xl);
+		--sl-text-h4: var(--sl-text-xl);
+	}
+
+	/* Keep title left and icons right; pin the search bar to the header midpoint. */
+	header.header button[data-open-modal] {
+		position: absolute;
+		left: 50%;
+		top: 50%;
+		transform: translate(-50%, -50%);
+		width: 32rem;
+		max-width: 32rem;
+		margin: 0;
+	}
+}
+
+@media (min-width: 72rem) {
+	.right-sidebar-container {
+		width: var(--sl-toc-width);
+	}
+
+	[data-has-sidebar][data-has-toc] .main-pane {
+		width: calc(100% - var(--sl-toc-width));
+		/* Starlight uses "auto 0" (hug the TOC). Center the article between left nav and TOC. */
+		--sl-content-margin-inline: auto;
+	}
+
+	main .content-panel .sl-container {
+		margin-inline: auto;
+	}
+
+	.right-sidebar-panel .sl-container {
+		width: auto;
+		max-width: 100%;
+	}
+}
