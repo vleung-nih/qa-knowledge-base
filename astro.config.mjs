@@ -1,0 +1,44 @@
+// @ts-check
+import { defineConfig } from 'astro/config';
+import starlight from '@astrojs/starlight';
+
+// https://astro.build/config
+export default defineConfig({
+	site: 'https://qa-knowledge-base.vercel.app',
+	integrations: [
+		starlight({
+			title: 'QA Knowledge Base',
+			description:
+				'QA knowledge base for NCI data-commons projects. MDB/STS is filled first; other projects are stubs.',
+			social: [
+				{
+					icon: 'github',
+					label: 'GitHub',
+					href: 'https://github.com/vleung-nih/qa-knowledge-base',
+				},
+			],
+			sidebar: [
+				{
+					label: 'MDB / STS',
+					items: [
+						{ label: 'Overview', slug: 'mdb-sts' },
+						{ label: 'Orientation', slug: 'mdb-sts/orientation' },
+						{ label: 'Glossary', slug: 'mdb-sts/glossary' },
+						{ label: 'Data promotion', slug: 'mdb-sts/data-promotion' },
+						{ label: 'How we test', slug: 'mdb-sts/how-we-test' },
+						{ label: 'EDPs', slug: 'mdb-sts/edps' },
+					],
+				},
+				{
+					label: 'Coming next',
+					items: [
+						{ label: 'CRDC Data Hub', slug: 'crdc-datahub' },
+						{ label: 'CPI', slug: 'cpi' },
+						{ label: 'Federation', slug: 'federation' },
+						{ label: 'cBioPortal', slug: 'cbioportal' },
+					],
+				},
+			],
+		}),
+	],
+});

@@ -1,0 +1,38 @@
+---
+title: QA Knowledge Base
+description: Shared QA wiki for NCI data-commons projects. MDB/STS is filled first; other projects are stubs.
+---
+
+This site is the QA team's knowledge base: **what each project is, how we test it, and where the gotchas live** — so that knowledge is not only in people's heads.
+
+**v1 is MDB / STS.** Other projects have the same page template as placeholders. Search is in the site header.
+
+## Start here
+
+- **[MDB / STS overview](/mdb-sts/)** — purpose, architecture, repos, environments, how we test, gotchas
+- [Orientation](/mdb-sts/orientation/) — one-page cheat sheet
+- [Data promotion](/mdb-sts/data-promotion/) — Dev → QA daily, QA → Stage → Prod weekly
+- [How we test](/mdb-sts/how-we-test/) — STS spec tests and term-by-value
+- [EDPs](/mdb-sts/edps/) — Term vs Enum, 555 vs 500
+
+## Coming next (stubs)
+
+Same headings as a full project page; content not filled yet.
+
+- [CRDC Data Hub](/crdc-datahub/)
+- [CPI](/cpi/)
+- [Federation](/federation/)
+- [cBioPortal](/cbioportal/)
+
+## Run this site locally
+
+```bash
+npm install
+npm run dev
+```
+
+Then open the URL Astro prints (usually `http://localhost:4321`). Edit markdown under `src/content/docs/`.
+
+## Contribute
+
+This repo is public on GitHub. For now, open a pull request against `main` with a page under `src/content/docs/`. A fuller contribution guide is an IDP follow-up (M2). Do not commit credentials, tokens, or private environment URLs.
