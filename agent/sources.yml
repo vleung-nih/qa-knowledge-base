@@ -1,0 +1,30 @@
+# v1: MDB / STS source repos only. Other wiki projects stay stubs.
+wiki_pages_root: src/content/docs/mdb-sts
+
+repos:
+  - github: CBIIT/bento-sts-fastapi
+    pages:
+      - src/content/docs/mdb-sts/how-we-test.md
+      - src/content/docs/mdb-sts/index.md
+    path_globs:
+      - README*
+      - docs/**
+      - spec/**
+      - "**/*openapi*"
+      - "**/*swagger*"
+      - "**/routers/**"
+      - "**/router*.py"
+      - "**/api/**"
+      - "**/*.json"
+
+  - github: CBIIT/bento-mdb
+    pages:
+      - src/content/docs/mdb-sts/data-promotion.md
+      - src/content/docs/mdb-sts/index.md
+    path_globs:
+      - README*
+      - docs/**
+      - "**/*changelog*"
+      - "**/*promotion*"
+      - "**/*prefect*"
+      - "**/*.md"
