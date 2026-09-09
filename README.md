@@ -26,7 +26,7 @@ Content lives in `src/content/docs/`. Sidebar is configured in `astro.config.mjs
 
 A GitHub Action watches `CBIIT/bento-sts-fastapi` and `CBIIT/bento-mdb`, asks AWS Bedrock (Claude Haiku, same `converse()` path as the STS test-framework parser agent) whether the wiki needs a delta, and opens a **PR**. It never pushes `main`. You review and merge; Vercel rebuilds the site.
 
-It does **not** fill stubs, paste ONBOARDING, or auto-merge. If nothing QA-relevant changed, it exits without a PR.
+It does **not** fill stubs, paste ONBOARDING, or auto-merge. Source diffs are **everything in the watermark window except** `ignore` in [`agent/sources.yml`](agent/sources.yml) (tests, devops, lockfiles, process docs). `.github` workflows are **not** ignored. Wiki writes are still limited to each repo’s `pages` list. If every changed file is ignored, it exits without a PR.
 
 ### GitHub secrets (once)
 

@@ -129,9 +129,10 @@ def collect_changes(sources: dict, watermarks: dict, work_dir: Path, token: str 
     packs: list[dict] = []
     new_marks = {"repos": dict(watermarks.get("repos") or {})}
     allowed: list[str] = []
+    shared_ignore = list(sources.get("ignore") or [])
     for repo in sources["repos"]:
         github = repo["github"]
-        globs = repo.get("path_globs") or []
+        ignore = shared_ignore + list(repo.get("ignore") or [])
         pages = repo.get("pages") or []
         allowed.extend(pages)
         dest = work_dir / github.replace("/", "__")
@@ -140,10 +141,13 @@ def collect_changes(sources: dict, watermarks: dict, work_dir: Path, token: str 
         head = current_sha(dest)
         old = (new_marks["repos"].get(github) or {}).get("sha") or ""
         names = changed_files(dest, old)
-        relevant = [p for p in names if any_glob(p, globs)]
+        relevant = [p for p in names if not any_glob(p, ignore)]
+        skipped = len(names) - len(relevant)
         new_marks["repos"][github] = {"sha": head}
         if not relevant:
-            print(f"  {github}: no QA-relevant path changes ({len(names)} files in window)")
+            print(
+                f"  {github}: {len(names)} files in window, {skipped} ignored, 0 sent"
+            )
             continue
         diff = filtered_diff(dest, old, relevant)
         packs.append(
@@ -156,7 +160,10 @@ def collect_changes(sources: dict, watermarks: dict, work_dir: Path, token: str 
                 "pages": pages,
             }
         )
-        print(f"  {github}: {len(relevant)} relevant file(s) {old or '∅'} → {head[:7]}")
+        print(
+            f"  {github}: {len(names)} files in window, {skipped} ignored, "
+            f"{len(relevant)} sent {old or '∅'} → {head[:7]}"
+        )
     # unique allowed paths
     seen: list[str] = []
     for p in allowed:
