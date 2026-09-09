@@ -22,10 +22,11 @@ WATERMARKS_PATH = AGENT_DIR / "state" / "watermarks.json"
 SKILL_PATH = AGENT_DIR / "skills" / "qa-docs-expert.md"
 ALLOWED_PREFIX = "src/content/docs/mdb-sts/"
 BOT_BRANCH = "docs-agent/mdb-sts"
-DEFAULT_MODEL = "us.anthropic.claude-haiku-4-5-20251001-v1:0"
+DEFAULT_MODEL = "us.anthropic.claude-sonnet-4-5-20250929-v1:0"
 DEFAULT_REGION = "us-east-1"
 MAX_DIFF_CHARS = 80_000
 MAX_OUTPUT_TOKENS = 8192
+BEDROCK_READ_TIMEOUT = 300
 CLONE_DEPTH = 50
 EMPTY_WINDOW = 20
 PR_HEAD_REF = BOT_BRANCH
@@ -217,9 +218,14 @@ def build_user_message(packs: list[dict], wiki_pages: dict[str, str], allowed: l
 
 def bedrock_client():
     import boto3
+    from botocore.config import Config
 
     region = os.getenv("AWS_REGION") or os.getenv("AWS_DEFAULT_REGION") or DEFAULT_REGION
-    kwargs: dict = {"region_name": region}
+    kwargs: dict = {
+        "region_name": region,
+        # Sonnet + a full wiki prompt can exceed boto3's default 60s read timeout.
+        "config": Config(read_timeout=BEDROCK_READ_TIMEOUT, connect_timeout=10),
+    }
     key = os.getenv("AWS_ACCESS_KEY_ID", "")
     secret = os.getenv("AWS_SECRET_ACCESS_KEY", "")
     if key and secret:
@@ -441,7 +447,7 @@ def main() -> int:
     skill = SKILL_PATH.read_text(encoding="utf-8")
     user = build_user_message(packs, wiki_pages, allowed)
     save_last_run(args.work_dir, user)
-    print("Calling Bedrock …")
+    print(f"Calling Bedrock ({os.getenv('BEDROCK_MODEL_ID') or DEFAULT_MODEL}) …")
     raw, stop_reason = call_bedrock(skill, user)
     dest = save_last_run(args.work_dir, user, raw)
     try:

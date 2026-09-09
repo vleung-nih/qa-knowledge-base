@@ -24,7 +24,7 @@ Content lives in `src/content/docs/`. Sidebar is configured in `astro.config.mjs
 
 ## Docs agent (MDB / STS)
 
-A GitHub Action watches `CBIIT/bento-sts-fastapi` and `CBIIT/bento-mdb`, asks AWS Bedrock (Claude Haiku, same `converse()` path as the STS test-framework parser agent) whether the wiki needs a delta, and opens a **PR**. It never pushes `main`. You review and merge; Vercel rebuilds the site.
+A GitHub Action watches `CBIIT/bento-sts-fastapi` and `CBIIT/bento-mdb`, asks AWS Bedrock (Claude Sonnet 4.5, same `converse()` path as the STS test-framework parser agent) whether the wiki needs a delta, and opens a **PR**. It never pushes `main`. You review and merge; Vercel rebuilds the site.
 
 It does **not** fill stubs, paste ONBOARDING, or auto-merge. Source diffs are **everything in the watermark window except** `ignore` in [`agent/sources.yml`](agent/sources.yml) (tests, devops, lockfiles, process docs). `.github` workflows are **not** ignored. Wiki writes are still limited to each repo’s `pages` list. If every changed file is ignored, it exits without a PR.
 
@@ -33,7 +33,7 @@ It does **not** fill stubs, paste ONBOARDING, or auto-merge. Source diffs are **
 Repo **Settings → Secrets and variables → Actions**:
 
 - `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` — IAM user that can `bedrock:InvokeModel` / Converse in `us-east-1` (same keys as the STS parser agent are fine)
-- Optional: `AWS_REGION` (defaults to `us-east-1` in code if unset), `BEDROCK_MODEL_ID` (default `us.anthropic.claude-haiku-4-5-20251001-v1:0`)
+- Optional: `AWS_REGION` (defaults to `us-east-1` in code if unset), `BEDROCK_MODEL_ID` (default `us.anthropic.claude-sonnet-4-5-20250929-v1:0`)
 - Optional: `GH_PAT` — only if a watched CBIIT repo is private
 
 ### Run it
