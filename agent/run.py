@@ -29,6 +29,7 @@ MAX_OUTPUT_TOKENS = 8192
 CLONE_DEPTH = 50
 EMPTY_WINDOW = 20
 PR_HEAD_REF = BOT_BRANCH
+LAST_RUN_DIRNAME = "last-run"
 
 
 def load_yaml(path: Path) -> dict:
@@ -113,6 +114,14 @@ def changed_files(repo_dir: Path, since_sha: str) -> list[str]:
     return [p.strip() for p in result.stdout.splitlines() if p.strip()]
 
 
+def print_path_list(label: str, paths: list[str]) -> None:
+    if not paths:
+        return
+    print(f"    {label}:")
+    for path in paths:
+        print(f"      - {path}")
+
+
 def filtered_diff(repo_dir: Path, since_sha: str, paths: list[str]) -> str:
     if not paths:
         return ""
@@ -142,12 +151,16 @@ def collect_changes(sources: dict, watermarks: dict, work_dir: Path, token: str 
         old = (new_marks["repos"].get(github) or {}).get("sha") or ""
         names = changed_files(dest, old)
         relevant = [p for p in names if not any_glob(p, ignore)]
-        skipped = len(names) - len(relevant)
+        ignored_paths = [p for p in names if any_glob(p, ignore)]
+        skipped = len(ignored_paths)
         new_marks["repos"][github] = {"sha": head}
+        print(
+            f"  {github}: {len(names)} files in window, {skipped} ignored, "
+            f"{len(relevant)} sent {old or '∅'} → {head[:7]}"
+        )
+        print_path_list("sent", relevant)
+        print_path_list("ignored", ignored_paths)
         if not relevant:
-            print(
-                f"  {github}: {len(names)} files in window, {skipped} ignored, 0 sent"
-            )
             continue
         diff = filtered_diff(dest, old, relevant)
         packs.append(
@@ -159,10 +172,6 @@ def collect_changes(sources: dict, watermarks: dict, work_dir: Path, token: str 
                 "diff": diff,
                 "pages": pages,
             }
-        )
-        print(
-            f"  {github}: {len(names)} files in window, {skipped} ignored, "
-            f"{len(relevant)} sent {old or '∅'} → {head[:7]}"
         )
     # unique allowed paths
     seen: list[str] = []
@@ -300,7 +309,7 @@ def validate_and_write(wiki_root: Path, payload: dict, allowed: list[str]) -> li
         dest.parent.mkdir(parents=True, exist_ok=True)
         dest.write_text(markdown if markdown.endswith("\n") else markdown + "\n", encoding="utf-8")
         written.append(dest)
-        print(f"Wrote {rel}")
+        print(f"Made edits to {rel}")
     return written
 
 
@@ -375,6 +384,32 @@ def commit_and_pr(wiki_root: Path, title: str, body: str, skip_pr: bool) -> None
     print("Opened PR.")
 
 
+def last_run_dir(work_dir: Path) -> Path:
+    return work_dir / LAST_RUN_DIRNAME
+
+
+def save_last_run(work_dir: Path, user: str, output: str | None = None) -> Path:
+    dest = last_run_dir(work_dir)
+    dest.mkdir(parents=True, exist_ok=True)
+    (dest / "user.txt").write_text(user, encoding="utf-8")
+    if output is not None:
+        (dest / "output.txt").write_text(output, encoding="utf-8")
+    return dest
+
+
+def print_model_meta(payload: dict) -> None:
+    summary = str(payload.get("pr_summary") or "").strip()
+    uncertain = payload.get("uncertain") or []
+    files = payload.get("files") or []
+    print(f"pr_summary: {summary or '(none)'}")
+    if uncertain:
+        print("uncertain:")
+        for item in uncertain:
+            print(f"  - {item}")
+    if not files:
+        print("No wiki edits from the model.")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Draft MDB/STS wiki updates from source repo diffs.")
     parser.add_argument("--wiki-root", type=Path, default=WIKI_ROOT)
@@ -405,8 +440,15 @@ def main() -> int:
     wiki_pages = load_wiki_pages(wiki_root, allowed)
     skill = SKILL_PATH.read_text(encoding="utf-8")
     user = build_user_message(packs, wiki_pages, allowed)
+    save_last_run(args.work_dir, user)
     print("Calling Bedrock …")
     raw, stop_reason = call_bedrock(skill, user)
+    dest = save_last_run(args.work_dir, user, raw)
+    try:
+        shown = dest.resolve().relative_to(wiki_root).as_posix()
+    except ValueError:
+        shown = str(dest)
+    print(f"Bedrock prompt/reply: {shown}/")
     if stop_reason == "max_tokens":
         print("Warning: Bedrock stopped at max_tokens; reply may be truncated.", file=sys.stderr)
     try:
@@ -415,6 +457,7 @@ def main() -> int:
         print("Model did not return parseable output:\n", raw[:2000], file=sys.stderr)
         hint = " (output was truncated)" if stop_reason == "max_tokens" else ""
         raise SystemExit(f"Parse error{hint}: {exc}") from exc
+    print_model_meta(payload)
 
     in_ci = bool(os.getenv("CI"))
     if in_ci and not args.skip_pr:
@@ -450,7 +493,9 @@ def main() -> int:
     elif args.skip_pr:
         commit_and_pr(wiki_root, title, body, skip_pr=True)
     else:
-        print("Wrote files in the working tree. Use --skip-pr to commit locally, or run the GitHub Action to open a PR.")
+        print(
+            "Made edits in the working tree. Use --skip-pr to commit locally, or run the GitHub Action to open a PR."
+        )
     return 0
 
 

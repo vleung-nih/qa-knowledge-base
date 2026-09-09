@@ -57,6 +57,8 @@ With AWS keys in the environment (writes wiki files locally, does not open a PR)
 python agent/run.py --skip-pr
 ```
 
+The console lists which source paths were sent or ignored. Full Bedrock prompt and reply are written to `agent/.work/last-run/` (gitignored).
+
 Config: [`agent/sources.yml`](agent/sources.yml), skill [`agent/skills/qa-docs-expert.md`](agent/skills/qa-docs-expert.md), watermarks [`agent/state/watermarks.json`](agent/state/watermarks.json).
 
 ## What is in v1
