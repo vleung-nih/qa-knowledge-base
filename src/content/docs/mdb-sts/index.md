@@ -74,11 +74,12 @@ GET {base}/model/CDS/version/v11.0.4/node/participant/property/race/terms
 
 ## Gotchas
 
-- **Data Hub is not MDB.** Failures in submission validation are often model YAML or PV pull, not “MDB is down.”
+- **Data Hub is not MDB.** Failures in submission validation are often model YAML or PV pull, not "MDB is down."
 - **Prerelease models reach QA daily** but are **pruned before Prod**. Prod is loaded from the **pruned Stage** export, not the first QA export.
 - **`Term:` vs `Enum:` in MDF.** `Term:` is CDE/EDP metadata. `Enum:` is the allowed-value list (inline strings or a term-ref that pulls PVs from STS). Only `Enum:` drives submitter validation.
 - Promotion **check** jobs are often **Skipped** when `mdb_models.yml` has no relevant diff. Import/export can still have succeeded.
 - STS v2 is **read-only GET** and does not require an API key for normal use.
+- **STS caches Neo4j queries** (default TTL 8 hours). After daily promotion, call `/admin/cache/clear` to ensure fresh data.
 
 ## Next pages
 

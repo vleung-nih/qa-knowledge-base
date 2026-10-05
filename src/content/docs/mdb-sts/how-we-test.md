@@ -59,7 +59,7 @@ STS_BASE_URL=https://sts-qa.cancer.gov/v2 pytest tests/ -v
 
 ## Discovery (why paths are not hardcoded)
 
-A path like “get node by handle” needs a real `modelHandle`, `versionString`, and `nodeHandle`. At start the framework:
+A path like "get node by handle" needs a real `modelHandle`, `versionString`, and `nodeHandle`. At start the framework:
 
 1. `GET /models/` → pick a model (or `--model`)
 2. Versions → latest **release** if `--release`, otherwise first listed (may be prerelease)
@@ -73,7 +73,13 @@ For each commons data model, YAML property enums are compared to what STS return
 
 ## EDPs in this framework
 
-Generated cases smoke-test `/edps` and `/edp/.../terms`. Manual tests pin origin/id/version and assert PV labels. Concepts and Jira mapping: [EDPs](/mdb-sts/edps/).
+Generated cases smoke-test `/edps/{originName}` and `/edp/{originName}/{originId}/{originVersion}/terms`. Manual tests pin origin/id/version and assert PV labels. Concepts and Jira mapping: [EDPs](/mdb-sts/edps/).
+
+**EDP warnings during model updates:** When a model property references an EDP that is not yet registered in MDB, the ingest flow emits a warning in Prefect logs (prefix `MDB_WARNING:`). The property is created, but the `has_value_set` link is not established until the EDP is registered. QA may see these warnings in GitHub Actions Slack notifications after model updates. They do not fail the workflow but indicate missing EDP metadata.
+
+## Cache invalidation after promotion
+
+STS caches Neo4j query results (default TTL 8 hours). After daily Dev→QA promotion, call `GET /admin/cache/clear` to ensure tests see fresh data. The endpoint returns `{"status": "cache cleared"}` on success.
 
 ## Living docs (not duplicated here)
 

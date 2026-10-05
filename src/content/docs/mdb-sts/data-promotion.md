@@ -8,7 +8,7 @@ This page explains **how CloudOne Metamodel Database (MDB) data moves from Dev �
 ## What you are testing (in one minute)
 
 - The **MDB** is a Neo4j database that holds data models, terminology (CDEs), value sets, and mappings. **STS** and other tools read from it.
-- **bento-mdb** GitHub Actions call **Prefect** jobs that **export** a database snapshot to **S3** (GraphML) and **import** it into another environment (replacing that environment’s graph).
+- **bento-mdb** GitHub Actions call **Prefect** jobs that **export** a database snapshot to **S3** (GraphML) and **import** it into another environment (replacing that environment's graph).
 - **Promotion** means: take a full copy from environment A and load it into environment B, then run automated checks and optionally update tracking in the repo.
 
 There are **two separate promotion pipelines**:
@@ -18,7 +18,7 @@ There are **two separate promotion pipelines**:
 | **Lower** | **Daily** | **Dev → QA** |
 | **Upper** | **Weekly (Saturday)** | **QA → Stage → Prod** |
 
-They use **different** rules for when extra validation runs and when the repo records “we promoted for these model changes.”
+They use **different** rules for when extra validation runs and when the repo records "we promoted for these model changes."
 
 ## Big picture
 
@@ -75,6 +75,8 @@ What happens conceptually:
 
 **QA takeaway:** Nightly **QA refresh from Dev** should happen when **import** succeeds. Check 0 / Verify validate *specific model lines* when the repo detects relevant `mdb_models.yml` changes — not necessarily every night.
 
+After import completes, call `GET /admin/cache/clear` on the QA STS instance to invalidate cached query results.
+
 ## Upper promotion: QA → Stage → Prod (weekly)
 
 **GitHub workflow:** Data Promotion (CloudOne QA to Stage and Production)  
@@ -96,6 +98,8 @@ Order of operations:
 
 **QA takeaway:** **Stage** always goes through **import → prune → re-export** before **Prod** sees data. **Prod** never imports the first QA file directly — it imports the **post-prune Stage** snapshot.
 
+After Stage and Prod imports complete, call `GET /admin/cache/clear` on those STS instances.
+
 ## GitHub Actions vs Prefect
 
 | Layer | Role |
@@ -103,7 +107,7 @@ Order of operations:
 | **GitHub Actions** | Schedule, checkout, call `prefect deployment run …`, wait, Slack, sometimes commit `sync_status.yml` |
 | **Prefect** | Talks to Neo4j and S3; runs check-promotion. You usually do **not** run Prefect by hand for routine QA |
 
-If an Action step fails with “Prefect” in the log, the **underlying check or export/import** failed — not necessarily GitHub itself.
+If an Action step fails with "Prefect" in the log, the **underlying check or export/import** failed — not necessarily GitHub itself.
 
 ## Skipped jobs vs failures
 
@@ -115,6 +119,14 @@ If an Action step fails with “Prefect” in the log, the **underlying check or
 
 **Critical distinction:** import/export/prune can **succeed** while verify jobs are **Skipped** because there were no release-level filter entries. Data was still copied. When model filters are **non-empty**, those check jobs should **run and succeed**.
 
+## Warnings in promotion flows
+
+Starting with bento-mdb commit `5b87bc5f`, the `update-mdb` workflow captures warnings from Prefect flow runs (lines prefixed `MDB_WARNING:` in logs). These warnings are collected, deduplicated, and included in the Slack notification. Common warnings:
+
+- **EDP not registered:** A model property references an EDP (external data provider) that is not yet in MDB. The property is created, but the `has_value_set` link is deferred until the EDP is registered. This does not fail the workflow but indicates missing EDP metadata.
+
+Warnings do **not** block promotion. They are informational and help QA identify incomplete metadata that may need follow-up.
+
 ## What to verify (maps to Jira)
 
 | Goal | What proves it |
@@ -125,6 +137,8 @@ If an Action step fails with “Prefect” in the log, the **underlying check or
 | **Prod from pruned Stage** | Import to Prod uses the **Stage** export after prune |
 | **Upper checks** | When filters apply: Stage and Prod verify jobs succeed |
 | **Alerts** | Slack notification job appears on runs; failures reported |
+| **Cache cleared** | `/admin/cache/clear` called on QA/Stage/Prod after import |
+| **Warnings reviewed** | Slack notifications include any MDB warnings; QA triages |
 
 ## Workflow file names (bento-mdb)
 

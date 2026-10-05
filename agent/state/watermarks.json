@@ -1,6 +1,10 @@
 {
   "repos": {
-    "CBIIT/bento-sts-fastapi": { "sha": "" },
-    "CBIIT/bento-mdb": { "sha": "" }
+    "CBIIT/bento-sts-fastapi": {
+      "sha": "a04494061949a5d7b738024dadf139d87dd35768"
+    },
+    "CBIIT/bento-mdb": {
+      "sha": "5b87bc5fc65ac004ed2cc403aba6667a69c0261a"
+    }
   }
 }
