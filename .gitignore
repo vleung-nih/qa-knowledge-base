@@ -1,7 +1,12 @@
 # build output
 dist/
+.vercel/
 # generated types
 .astro/
+
+# agent clone cache (local runs)
+agent/.work/
+agent/.venv/
 
 # dependencies
 node_modules/

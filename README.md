@@ -22,6 +22,45 @@ npm run preview  # serve dist/ locally
 
 Content lives in `src/content/docs/`. Sidebar is configured in `astro.config.mjs`.
 
+## Docs agent (MDB / STS)
+
+A GitHub Action watches `CBIIT/bento-sts-fastapi` and `CBIIT/bento-mdb`, asks AWS Bedrock (Claude Sonnet 4.5, same `converse()` path as the STS test-framework parser agent) whether the wiki needs a delta, and opens a **PR**. It never pushes `main`. You review and merge; Vercel rebuilds the site.
+
+It does **not** fill stubs, paste ONBOARDING, or auto-merge. Source diffs are **everything in the watermark window except** `ignore` in [`agent/sources.yml`](agent/sources.yml) (tests, devops, lockfiles, process docs). `.github` workflows are **not** ignored. Wiki writes are still limited to each repo’s `pages` list. If every changed file is ignored, it exits without a PR.
+
+### GitHub secrets (once)
+
+Repo **Settings → Secrets and variables → Actions**:
+
+- `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` — IAM user that can `bedrock:InvokeModel` / Converse in `us-east-1` (same keys as the STS parser agent are fine)
+- Optional: `AWS_REGION` (defaults to `us-east-1` in code if unset), `BEDROCK_MODEL_ID` (default `us.anthropic.claude-sonnet-4-5-20250929-v1:0`)
+- Optional: `GH_PAT` — only if a watched CBIIT repo is private
+
+### Run it
+
+**Actions → QA docs agent → Run workflow** (`workflow_dispatch`). Weekday cron is in [`.github/workflows/docs-agent.yml`](.github/workflows/docs-agent.yml) but commented out until you like the PRs.
+
+Review checklist: every “how we test” claim should match a path in the source diff. Close the PR if the model guessed.
+
+Local dry run (clones sources, no Bedrock):
+
+```bash
+python3 -m venv agent/.venv
+source agent/.venv/bin/activate
+pip install -r agent/requirements.txt
+python agent/run.py --dry-run
+```
+
+With AWS keys in the environment (writes wiki files locally, does not open a PR):
+
+```bash
+python agent/run.py --skip-pr
+```
+
+The console lists which source paths were sent or ignored. Full Bedrock prompt and reply are written to `agent/.work/last-run/` (gitignored).
+
+Config: [`agent/sources.yml`](agent/sources.yml), skill [`agent/skills/qa-docs-expert.md`](agent/skills/qa-docs-expert.md), watermarks [`agent/state/watermarks.json`](agent/state/watermarks.json).
+
 ## What is in v1
 
 | Section | Status |
@@ -46,4 +85,4 @@ Hobby (free) is enough for a public site. No environment variables are required.
 
 ## Contribute
 
-Open a pull request against `main`. A longer contribution guide will come later. Prefer editing the markdown pages rather than pasting entire test-framework onboarding files into this repo.
+Open a pull request against `main` (human or docs-agent). Prefer editing the markdown pages rather than pasting entire test-framework onboarding files into this repo.
