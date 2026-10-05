@@ -1,13 +1,15 @@
 ---
 title: QA Knowledge Base
-description: Shared QA wiki for NCI data-commons projects. MDB/STS is filled first; other projects are stubs.
+description: Shared QA wiki for NCI data-commons projects. MDB/STS and Federation are seeded; other projects are stubs.
 ---
 
 This site is the QA team's knowledge base: **what each project is, how we test it, and where the gotchas live** — so that knowledge is not only in people's heads.
 
-**v1 is MDB / STS.** Other projects have the same page template as placeholders. Search is in the site header.
+**Seeded sections:** MDB / STS and **Federation** (aggregation Resource API + AI Copilot). Other projects use the same page template as placeholders. Search is in the site header.
 
 ## Start here
+
+### MDB / STS
 
 - **[MDB / STS overview](/mdb-sts/)** — purpose, architecture, repos, environments, how we test, gotchas
 - [Orientation](/mdb-sts/orientation/) — one-page cheat sheet
@@ -15,13 +17,19 @@ This site is the QA team's knowledge base: **what each project is, how we test i
 - [How we test](/mdb-sts/how-we-test/) — STS spec tests and term-by-value
 - [EDPs](/mdb-sts/edps/) — Term vs Enum, 555 vs 500
 
+### Federation
+
+- **[Federation overview](/federation/)** — aggregation API, repos, environments (not DCC)
+- [Orientation](/federation/orientation/) — hub vs nodes, subject/sample/file, pagination
+- [How we test](/federation/how-we-test/) — Copilot MVP and aggregation smoke
+- [AI Copilot](/federation/ai-copilot/) — install and guardrails
+
 ## Coming next (stubs)
 
 Same headings as a full project page; content not filled yet.
 
 - [CRDC Data Hub](/crdc-datahub/)
 - [CPI](/cpi/)
-- [Federation](/federation/)
 - [cBioPortal](/cbioportal/)
 
 ## Run this site locally
