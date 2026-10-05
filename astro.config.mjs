@@ -9,7 +9,7 @@ export default defineConfig({
 		starlight({
 			title: 'QA Knowledge Base',
 			description:
-				'QA knowledge base for NCI data-commons projects. MDB/STS, Federation, and CPI are seeded; other sections are stubs.',
+				'QA knowledge base for NCI data-commons projects. MDB/STS, Federation, CPI, and CRDC Data Hub are seeded; other sections are stubs.',
 			customCss: ['./src/styles/custom.css'],
 			social: [
 				{
@@ -48,11 +48,16 @@ export default defineConfig({
 					],
 				},
 				{
-					label: 'Coming next',
+					label: 'CRDC Data Hub',
 					items: [
-						{ label: 'CRDC Data Hub', slug: 'crdc-datahub' },
-						{ label: 'cBioPortal', slug: 'cbioportal' },
+						{ label: 'Overview', slug: 'crdc-datahub' },
+						{ label: 'Orientation', slug: 'crdc-datahub/orientation' },
+						{ label: 'How we test', slug: 'crdc-datahub/how-we-test' },
 					],
+				},
+				{
+					label: 'Coming next',
+					items: [{ label: 'cBioPortal', slug: 'cbioportal' }],
 				},
 			],
 		}),
